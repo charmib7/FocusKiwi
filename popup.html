@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Focus Kiwi</title>
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body>
+    <main class="popup-shell">
+      <header class="topbar">
+        <div class="brand-mark" aria-hidden="true">K</div>
+        <div class="brand-copy">
+          <p class="eyebrow">FOCUS KIWI</p>
+          <h1>Make room to focus.</h1>
+        </div>
+        <span class="status-dot" id="status-dot" aria-hidden="true"></span>
+      </header>
+
+      <section class="session-panel" id="session-panel" aria-live="polite" hidden>
+        <div>
+          <p class="session-kicker" id="session-kicker">STUDY SESSION</p>
+          <h2 id="session-phase">Focus time</h2>
+        </div>
+        <p class="session-clock" id="session-clock">25:00</p>
+        <button class="stop-button" id="stop-button" type="button">End session</button>
+      </section>
+
+      <fieldset class="setup-controls" id="setup-controls">
+        <legend class="visually-hidden">Study settings and blocked sites</legend>
+        <section class="durations-section" aria-labelledby="durations-heading">
+          <div class="section-heading">
+            <h2 id="durations-heading">Session lengths</h2>
+          </div>
+          <div class="duration-grid">
+            <label class="duration-field">
+              <span>Focus</span>
+              <span class="duration-input-wrap">
+                <input id="focus-minutes" type="number" min="1" max="180" step="1" required>
+                <span>min</span>
+              </span>
+            </label>
+            <label class="duration-field">
+              <span>Break</span>
+              <span class="duration-input-wrap">
+                <input id="break-minutes" type="number" min="1" max="60" step="1" required>
+                <span>min</span>
+              </span>
+            </label>
+            <label class="duration-field">
+              <span>Total study</span>
+              <span class="duration-input-wrap">
+                <input id="total-minutes" type="number" min="1" max="1440" step="1" required>
+                <span>min</span>
+              </span>
+            </label>
+          </div>
+          <p class="form-error" id="duration-error" role="alert" hidden></p>
+          <button class="start-button" id="start-button" type="button">Start study session</button>
+        </section>
+
+        <section class="sites-section" aria-labelledby="sites-heading">
+        <div class="section-heading">
+          <h2 id="sites-heading">Blocked sites</h2>
+          <span class="site-count" id="site-count">0</span>
+        </div>
+        <form id="add-site-form" class="add-form">
+          <label class="visually-hidden" for="site-input">Website domain</label>
+          <input id="site-input" type="text" placeholder="Add a website, e.g. reddit.com" autocomplete="url" spellcheck="false">
+          <button type="submit" aria-label="Add website" title="Add website">+</button>
+        </form>
+        <p class="form-error" id="form-error" role="alert" hidden></p>
+        <ul class="site-list" id="site-list" aria-live="polite"></ul>
+        </section>
+      </fieldset>
+
+      <footer class="footer-line">
+        <span class="footer-leaf" aria-hidden="true">✳</span>
+        <span>Focus in sessions. Rest in between.</span>
+      </footer>
+    </main>
+    <script src="popup.js"></script>
+  </body>
+</html>

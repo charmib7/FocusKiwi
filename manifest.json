@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "Focus Kiwi",
+  "version": "1.0.0",
+  "description": "Block distracting websites while focus mode is on.",
+  "permissions": [
+    "declarativeNetRequest",
+    "storage",
+    "alarms",
+    "tabs",
+    "webNavigation"
+  ],
+  "background": {
+    "service_worker": "service-worker.js"
+  },
+  "action": {
+    "default_title": "Focus Kiwi",
+    "default_popup": "popup.html"
+  }
+}

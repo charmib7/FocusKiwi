@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Focus Kiwi | Site blocked</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #20342c;
+        --muted: #78867d;
+        --green: #2f7652;
+        --paper: #fbfcf8;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        display: grid;
+        min-height: 100vh;
+        margin: 0;
+        padding: 24px;
+        place-items: center;
+        background-color: var(--paper);
+        background-image: radial-gradient(#dce8dd 0.65px, transparent 0.65px);
+        background-size: 12px 12px;
+        color: var(--ink);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      main {
+        width: min(100%, 440px);
+        padding: 32px;
+        border: 1px solid #e1e9df;
+        border-radius: 8px;
+        background: #fbfcf8ed;
+        text-align: center;
+      }
+
+      .mark {
+        display: grid;
+        width: 48px;
+        height: 48px;
+        margin: 0 auto 20px;
+        place-items: center;
+        border-radius: 15px 15px 15px 5px;
+        background: var(--green);
+        color: white;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 28px;
+        font-weight: 700;
+      }
+
+      p { color: var(--muted); line-height: 1.6; }
+
+      .eyebrow {
+        margin-bottom: 8px;
+        color: var(--green);
+        font-size: 11px;
+        font-weight: 750;
+      }
+
+      h1 {
+        margin: 0;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 30px;
+        font-weight: 600;
+      }
+
+      #site-name {
+        overflow-wrap: anywhere;
+        color: var(--ink);
+        font-weight: 650;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="mark" aria-hidden="true">K</div>
+      <p class="eyebrow">FOCUS KIWI</p>
+      <h1>Stay with your study session.</h1>
+      <p><span id="site-name">This site</span> is on your blocked list. It will be available again when focus time ends.</p>
+    </main>
+    <script src="blocked.js"></script>
+  </body>
+</html>
