@@ -44,7 +44,14 @@ function renderSession() {
 
 function render() {
   const isStudying = Boolean(studySession?.active);
-  controls.disabled = isStudying;
+  const canAddSites = !isStudying || studySession.phase === "focus";
+  controls.disabled = false;
+  focusInput.disabled = isStudying;
+  breakInput.disabled = isStudying;
+  totalInput.disabled = isStudying;
+  startButton.disabled = isStudying;
+  siteInput.disabled = !canAddSites;
+  siteForm.querySelector("button[type='submit']").disabled = !canAddSites;
   focusInput.value = String(studySettings.focusMinutes);
   breakInput.value = String(studySettings.breakMinutes);
   totalInput.value = String(studySettings.totalMinutes);
@@ -76,6 +83,7 @@ function render() {
     removeButton.title = `Remove ${domain}`;
     removeButton.disabled = isStudying;
     removeButton.addEventListener("click", () => {
+      if (studySession?.active) return;
       sites = sites.filter((site) => site !== domain);
       void saveSites();
     });
@@ -108,6 +116,7 @@ function normalizeDomain(value) {
 
 siteForm.addEventListener("submit", async (event) => {
   event.preventDefault();
+  if (studySession?.active && studySession.phase !== "focus") return;
   const domain = normalizeDomain(siteInput.value.trim());
   if (!domain) {
     formError.textContent = "Enter a valid website address.";
@@ -126,6 +135,9 @@ siteForm.addEventListener("submit", async (event) => {
   siteInput.value = "";
   formError.hidden = true;
   await saveSites();
+  if (studySession?.active && studySession.phase === "focus") {
+    await chrome.runtime.sendMessage({ type: "refresh-blocked-site-tabs" });
+  }
 });
 
 siteInput.addEventListener("input", () => {

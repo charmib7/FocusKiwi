@@ -40,6 +40,55 @@ async function reloadAllTabs() {
     .map((tab) => chrome.tabs.reload(tab.id).catch(() => undefined)));
 }
 
+async function reloadTabsMatching(predicate) {
+  const tabs = await chrome.tabs.query({});
+  await Promise.all(tabs
+    .filter((tab) => Number.isInteger(tab.id) && predicate(tab))
+    .map((tab) => chrome.tabs.reload(tab.id).catch(() => undefined)));
+}
+
+async function reloadBlockedSiteTabs() {
+  const { sites = [] } = await chrome.storage.local.get("sites");
+  await reloadTabsMatching((tab) => {
+    if (!tab.url) return false;
+    let hostname;
+    try {
+      const url = new URL(tab.url);
+      if (url.protocol !== "http:" && url.protocol !== "https:") return false;
+      hostname = url.hostname.toLowerCase().replace(/\.$/, "");
+    } catch {
+      return false;
+    }
+    return sites.some((domain) => hostname === domain || hostname.endsWith(`.${domain}`));
+  });
+}
+
+async function reloadBlockedPageTabs() {
+  const blockedPageUrl = chrome.runtime.getURL("blocked.html");
+  await reloadTabsMatching((tab) => tab.url?.startsWith(blockedPageUrl));
+}
+
+async function reloadTabsForEndedPhase(phase) {
+  if (phase === "focus") {
+    await reloadBlockedPageTabs();
+  } else if (phase === "break") {
+    await reloadBlockedSiteTabs();
+  }
+}
+
+function getPhaseAtSessionEnd(session) {
+  let phase = session.phase;
+  let nextBoundary = session.phaseEndsAt;
+  while (nextBoundary < session.endsAt) {
+    phase = phase === "focus" ? "break" : "focus";
+    const duration = (phase === "focus"
+      ? session.focusMinutes
+      : session.breakMinutes) * 60_000;
+    nextBoundary = Math.min(nextBoundary + duration, session.endsAt);
+  }
+  return phase;
+}
+
 async function redirectBlockedNavigation(details) {
   if (details.frameId !== 0 || details.tabId < 0) return;
 
@@ -71,14 +120,15 @@ function scheduleTransition(session) {
   chrome.alarms.create(TRANSITION_ALARM, { when: session.phaseEndsAt });
 }
 
-async function finishStudySession() {
+async function finishStudySession(endedPhase) {
+  const { studySession } = await chrome.storage.local.get("studySession");
   await chrome.storage.local.set({
     studySession: null,
     enabled: false
   });
   await syncBlockingRules();
   await chrome.alarms.clear(TRANSITION_ALARM);
-  await reloadAllTabs();
+  await reloadTabsForEndedPhase(endedPhase || studySession?.phase);
 }
 
 async function advanceStudySession() {
@@ -91,7 +141,7 @@ async function advanceStudySession() {
     return;
   }
   if (now >= studySession.endsAt) {
-    await finishStudySession();
+    await finishStudySession(getPhaseAtSessionEnd(studySession));
     return;
   }
 
@@ -115,7 +165,7 @@ async function advanceStudySession() {
     enabled: phase === "focus"
   });
   await syncBlockingRules();
-  await reloadAllTabs();
+  await reloadTabsForEndedPhase(studySession.phase);
   scheduleTransition(nextSession);
 }
 
@@ -205,6 +255,12 @@ chrome.webNavigation.onBeforeNavigate.addListener((details) => {
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message.type === "start-study") {
     void startStudySession(message.settings).then(sendResponse);
+    return true;
+  }
+  if (message.type === "refresh-blocked-site-tabs") {
+    void syncBlockingRules()
+      .then(reloadBlockedSiteTabs)
+      .then(() => sendResponse({}));
     return true;
   }
   if (message.type === "stop-study") {
