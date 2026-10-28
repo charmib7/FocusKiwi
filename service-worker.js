@@ -63,14 +63,29 @@ async function reloadBlockedSiteTabs() {
   });
 }
 
-async function reloadBlockedPageTabs() {
+async function restoreBlockedPageTabs() {
   const blockedPageUrl = chrome.runtime.getURL("blocked.html");
-  await reloadTabsMatching((tab) => tab.url?.startsWith(blockedPageUrl));
+  const tabs = await chrome.tabs.query({});
+  await Promise.all(tabs
+    .filter((tab) => Number.isInteger(tab.id) && tab.url?.startsWith(blockedPageUrl))
+    .map(async (tab) => {
+      let destination;
+      try {
+        const blockedPage = new URL(tab.url);
+        const returnTo = blockedPage.searchParams.get("returnTo");
+        const site = blockedPage.searchParams.get("site");
+        destination = new URL(returnTo || (site ? `https://${site}/` : ""));
+        if (destination.protocol !== "http:" && destination.protocol !== "https:") return;
+      } catch {
+        return;
+      }
+      await chrome.tabs.update(tab.id, { url: destination.href }).catch(() => undefined);
+    }));
 }
 
 async function reloadTabsForEndedPhase(phase) {
   if (phase === "focus") {
-    await reloadBlockedPageTabs();
+    await restoreBlockedPageTabs();
   } else if (phase === "break") {
     await reloadBlockedSiteTabs();
   }
@@ -112,7 +127,7 @@ async function redirectBlockedNavigation(details) {
 
   const blockedPage = chrome.runtime.getURL("blocked.html");
   await chrome.tabs.update(details.tabId, {
-    url: `${blockedPage}?site=${encodeURIComponent(hostname)}`
+    url: `${blockedPage}?site=${encodeURIComponent(hostname)}&returnTo=${encodeURIComponent(details.url)}`
   }).catch(() => undefined);
 }
 
